@@ -1,0 +1,32 @@
+/************************************************************
+PURPOSE:
+    ( Simulate the entier PPE )
+LIBRARY DEPENDENCIES:
+    ((01_Sattelite/src/Sattelite.cpp))
+*************************************************************/
+#include "sim_objects/default_trick_sys.sm"
+##include "01_Sattelite/include/Sattelite.hh"
+
+class PPE : public Trick::SimObject {
+    public:
+    satellite PowerPropulsionElement;
+
+    PPE() {
+        ("default_data")            PowerPropulsionElement.default_data() ;
+        ("initialization")          PowerPropulsionElement.state_init() ;
+        ("derivative")              PowerPropulsionElement.state_deriv() ;
+        ("integration") trick_ret = PowerPropulsionElement.state_integ() ;
+        ("shutdown")                PowerPropulsionElement.shutdown() ;
+	    //("dynamic_event")           sol.no_current() ;
+    }
+};
+
+PPE dyn;
+
+
+
+IntegLoop dyn_integloop(0.01) dyn;
+
+void create_connections() {
+    dyn_integloop.getIntegrator(Runge_Kutta_4, 4);
+}

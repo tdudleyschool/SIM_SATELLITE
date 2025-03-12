@@ -1,0 +1,33 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+
+df = pd.read_csv('../accelerometer_output.txt', delimiter =', ')
+plt.figure(figsize=(10,6))
+plt.plot(df['t'], df['a'], label = 'acceleration')
+plt.plot(df['t'], df['a_g'], label = 'measured acceleration')
+plt.title('Acceleration v. Time')
+plt.xlabel('time (s)')
+plt.ylabel('acceleration (m/s^2)')
+#plt.legend()
+plt.grid(True)
+plt.savefig('accelerometer(AvT).png')
+
+plt.figure(figsize=(10,6))
+plt.plot(df['t'], df['v'], label = 'velocity')
+plt.plot(df['t'], df['v_g'], label = 'measured velocity')
+plt.title('Velocity v. Time')
+plt.xlabel('time (s)')
+plt.ylabel('velocity (m/s)')
+#plt.legend()
+plt.grid(True)
+plt.savefig('accelerometer(VvT).png')
+
+plt.figure(figsize=(10,6))
+plt.plot(df['t'], df['x'], label = 'displacement')
+plt.plot(df['t'], df['x_g'], label = 'measured displacement')
+plt.title('displacement v. Time')
+plt.xlabel('time (s)')
+plt.ylabel('displacement (m)')
+#plt.legend()
+plt.grid(True)
+plt.savefig('accelerometer(XvT).png')
