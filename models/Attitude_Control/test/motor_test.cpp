@@ -44,7 +44,7 @@ int main(){
     cont_wheel.update_I(I);
     double dI = 0;
     
-    for (t; t < 100; t = t + dt){
+    for (t; t < 1000; t = t + dt){
         I = -400;
         if(t>50){
             I = 0;

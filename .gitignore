@@ -1,0 +1,13 @@
+DP_Product
+Modified_data
+
+_init_log.csv
+S_job_execution
+S_run_summary
+send_hs
+varserver_log
+
+*_program*
+*.png
+*.txt
+!read_me.txt
