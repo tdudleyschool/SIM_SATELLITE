@@ -332,12 +332,34 @@ int satellite::state_deriv(){
     //===
 
     for (int i = 0; i < 3; i++){
+        integrate2(sat_x[i], sat_v[i], dt);
         integrate2(sat_v[i], sat_a[i], dt);
-        integrate2(sat_x[i], sat_a[i], dt);
-        GNC_cal_w[i] = GNC_cal_w[i] + 0.1592341*dt;
+        integrate2(Earth_x[i], Earth_v[i], dt);
+        integrate2(Earth_v[i], Earth_a[i], dt);
+        integrate2(Moon_x[i], Moon_v[i], dt);
+        integrate2(Moon_v[i], Moon_a[i], dt);
+        integrate2(sat_L[i], sat_dL[i], dt);
+        integrate2(accel_proof_mass_x[i], accel_proof_mass_v[i], dt);
+        integrate2(accel_proof_mass_v[i], accel_proof_mass_a[i], dt);
+        integrate2(gyro_x_drive[i], gyro_v_drive[i], dt);
+        integrate2(gyro_x_sense[i], gyro_v_sense[i], dt);
+        integrate2(gyro_v_drive[i], gyro_a_drive[i], dt);
+        integrate2(gyro_v_sense[i], gyro_a_sense[i], dt);
+        integrate2(GNC_cal_x[i], GNC_cal_v[i], dt);
+        integrate2(GNC_cal_v[i], GNC_cal_a[i], dt);
     }
+    integrate2(sat_theta_mag, sat_w_mag, dt);
+
     satellite_body.update_pos(sat_x[0], sat_x[1], sat_x[2]);
     satellite_body.update_v(sat_v[0], sat_v[1], sat_v[2]);
+
+    for (int i = 0; i < 3; i++){
+        gyro[i].update_position_drive(gyro_x_drive[0]);
+        gyro[i].update_position_sense(gyro_x_sense[0]);
+        gyro[i].update_velocity_drive(gyro_v_drive[0]);
+        gyro[i].update_velocity_sense(gyro_v_sense[0]);
+        GNC_cal_w[i] = gyro[i].get_angularVelocity();
+    }
 
 
     cout << "======================SATTELITE OUTPUT=====================" << endl;
