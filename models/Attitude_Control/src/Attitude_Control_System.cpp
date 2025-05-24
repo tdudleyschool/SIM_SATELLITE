@@ -90,7 +90,6 @@ void Attitude_Control_System::motor_off(int index)
     if (index >= 0 && index < 3) {
         motor_on[index] = false;
         motors[index].update_Voltage(0.0);
-        motors[index].update_I(0.0);
     }
 }
 
@@ -122,7 +121,6 @@ void Attitude_Control_System::motor_clock(int index, double current, double volt
     V_polarity[index] = 1;
     motor_on[index] = true;
     motors[index].update_Voltage(V_polarity[index]*voltage);
-    motors[index].update_I(V_polarity[index]*current);
 }
 
 void Attitude_Control_System::motor_contClock(int index, double current, double voltage)
@@ -131,7 +129,6 @@ void Attitude_Control_System::motor_contClock(int index, double current, double 
     V_polarity[index] = -1;
     motor_on[index] = true;
     motors[index].update_Voltage(V_polarity[index]*voltage);
-    motors[index].update_I(V_polarity[index]*current);
 }
 
 void Attitude_Control_System::update_all_ori(double rotation_matrix[3][3])
