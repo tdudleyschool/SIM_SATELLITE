@@ -20,21 +20,24 @@ void integrate(double &, double, double, double);
 
 int main(){
     double I = 0;
-    double dI_prev;
-    double alpha = 0;
-    double alpha_prev;
+    double w = 0;
+    double I_prev;
+    double w_prev;
     double c_pos[] = {0, 0, 0};
     double R[3][3] = {{1, 0, 0},{0, 1, 0},{0, 0, 1}};
 
     double ref_pos[] = {0, 0, 0};
     double ref_ori[] = {1, 0, 0};
 
-    motor cont_wheel(1.0, 0.01, 1.0, 1.0, 1.0, 2.0);
+
+
+
+    motor cont_wheel(1.0, 0.05, 0.1, 0.1, 1.0, 0.1);
     cont_wheel.update_Voltage(-200);
     cont_wheel.set_refrence_pos(ref_pos);
     cont_wheel.set_refrence_ori(ref_ori);
     cont_wheel.update_pos_ori(c_pos, R);
-    cont_wheel.update_inertia();
+    cont_wheel.update_inertia(0.01);
 
 
     double dt = 0.1;
@@ -43,30 +46,30 @@ int main(){
     I = 0;
     cont_wheel.update_I(I);
     double dI = 0;
+    double dw = 0;
     
-    for (t; t < 1000; t = t + dt){
-        I = -400;
+    for (t; t < 100; t = t + dt){
         if(t>50){
-            I = 0;
             cont_wheel.update_Voltage(0);
-
+        }
+        else{
+            cont_wheel.update_Voltage(-200);
         }
         cout << I << endl;
 
-        dI_prev = dI;
-        alpha_prev = alpha;
+        I_prev = I;
+        w_prev = w;
+
+        cont_wheel.update_I(I_prev);
+        cont_wheel.update_omega(w_prev);
 
         dI = cont_wheel.state_deriv_get_dI();
-        integrate(I, dI_prev, dI, dt);
-        cont_wheel.update_I(I);
+        dw = cont_wheel.state_dirv_getAlpha();
 
-        alpha = cont_wheel.state_dirv_getAlpha(0);
-        double w;
-        integrate(w, alpha_prev, alpha, dt);
-        cont_wheel.update_omega(w);
-
+        I = I_prev + dt * dI;
+        w = w_prev + dt * dw;
         //outData << "t=" << t << " a=" << spring_accel << " v=" << v << " x=" << x << endl; 
-        cout << "t: " << t << ":    I=" << I << " dI=" << dI << " a=" << alpha << " w=" << w << endl; 
+        cout << "t: " << t << ":    I=" << I << " dI=" << dI << " a=" << dw << " w=" << w << endl; 
     }
 }
 

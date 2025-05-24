@@ -153,9 +153,16 @@ int satellite::state_init(){
 
     //Attitude Control Initial Variables
     ACS.update_all_ori(R_matrix);
-    ACS.update_I(0, 0);
-    ACS.update_I(1, 0);
-    ACS.update_I(2, 0);
+    ACS.updateAll_I(0, 0, 0);
+    ACS.updateAll_omega(0, 0, 0);
+    for(int i = 0; i < 3; i++){
+        attitude_I[i] = 0;
+        attitude_w[i] = 0;
+        I_prev[i] = 0;
+        w_prev[i] = 0;
+        dI[i] = 0;
+        alpha[i] = 0;
+    }
 
     //GNC Initial Variables
     for (int i = 0; i < 3; i++){
@@ -303,10 +310,16 @@ int satellite::state_deriv(){
     //=========================
     //ATTITUDE CONTROL HANDLING
     //=========================
+    for(int i = 0; i < 3; i++){
+        I_prev[i] = attitude_I[i];
+        w_prev[i] = attitude_w[i];
+        ACS.update_Voltage(i, V);
+    }
+
     ACS.update_all_ori(R_matrix);
-    ACS.update_I(0, Low_Voltage_I);
-    ACS.update_I(1, Low_Voltage_I);
-    ACS.update_I(2, Low_Voltage_I);
+    ACS.updateAll_I(I_prev);
+    ACS.updateAll_omega(w_prev);
+
     ACS.state_deriv_getALL_dI(dI);
     ACS.state_deriv_getALL_Alpha(alpha);
 
@@ -338,6 +351,8 @@ int satellite::state_deriv(){
         integrate2(Earth_v[i], Earth_a[i], dt);
         integrate2(Moon_x[i], Moon_v[i], dt);
         integrate2(Moon_v[i], Moon_a[i], dt);
+        integrate2(attitude_I[i], I_prev[i], dt);
+        integrate2(attitude_w[i], w_prev[i], dt);
         integrate2(sat_L[i], sat_dL[i], dt);
         integrate2(accel_proof_mass_x[i], accel_proof_mass_v[i], dt);
         integrate2(accel_proof_mass_v[i], accel_proof_mass_a[i], dt);
@@ -442,6 +457,14 @@ int satellite::state_integ(){
         gyro[i].update_velocity_drive(gyro_v_drive[0]);
         gyro[i].update_velocity_sense(gyro_v_sense[0]);
         GNC_cal_w[i] = gyro[i].get_angularVelocity();
+        commeny 1
+        comment 2
+
+
+comment 3 for the programn doeay
+sb
+you m ake the code one dh
+I asked , 
     }
 */
     return (integration_step);

@@ -19,7 +19,7 @@ Attitude_Control_System::Attitude_Control_System()
         motor_on[i] = false;
         motor_Pow[i] = 10.0;
         V_polarity[i] = 1;
-        motors[i].initialize(1.0, 0.01, 1.0, 1.0, 1.0, 2.0);
+        motors[i].initialize(1.0, 0.05, 0.1, 0.1, 1.0, 0.1);
         motors[i].set_wheel_values(120, 8, 4);
     }
 
@@ -111,9 +111,9 @@ void Attitude_Control_System::state_deriv_getALL_Alpha(double alpha[3])
     //                  In addition the k constant, magnetic field, and dampaning, and wheel must be setup
     //Postconditions:   return the angular acceleration (rate of change of angular velocity)
 {
-    alpha[0] = motors[0].state_dirv_getAlpha(0);
-    alpha[1] = motors[1].state_dirv_getAlpha(0);
-    alpha[2] = motors[2].state_dirv_getAlpha(0);
+    alpha[0] = motors[0].state_dirv_getAlpha();
+    alpha[1] = motors[1].state_dirv_getAlpha();
+    alpha[2] = motors[2].state_dirv_getAlpha();
 }
 
 void Attitude_Control_System::motor_clock(int index, double current, double voltage)

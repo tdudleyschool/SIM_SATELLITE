@@ -125,6 +125,7 @@ void motor::update_inertia()
     double y = ori[1];
     double z = ori[2];
     J = wheel.get_I_0_double(x, y, z);
+    cout << "Inertial is: " << J;
 }
 
 double motor::state_deriv_get_dI()
@@ -133,16 +134,16 @@ double motor::state_deriv_get_dI()
     //Preconditions:    Values of Voltage, Resistance, K constent, inductance, and magnetic field are set up.
     //Postconditions:   returns the rate of change of current at that point in time
 {
-    return (V_a - R_a*I_a - k_1*B*w)/(L_a+1);
+    return (V_a - R_a*I_a - k_1*B*w)/(L_a);
 }
 
-double motor::state_dirv_getAlpha(double T_ext)
+double motor::state_dirv_getAlpha()
     //Description:      Mechanical part of DC motor Equation.
     //Preconditions:    The current must be set (preferably after integration)
     //                  In addition the k constant, magnetic field, and dampaning, and wheel must be setup
     //Postconditions:   return the angular acceleration (rate of change of angular velocity)
 {
-    return (k_1*B*I_a - T_ext - b*w)/(J+1);
+    return (k_1*B*I_a - b*w)/(J);
 }
 
 void motor::update_I(double current)

@@ -97,8 +97,10 @@ public:
 
     //Integrated Variables
     //Attitude
-    double attitude_I;
-    double attitude_w;
+    double attitude_I[3];
+    double attitude_w[3];
+    double I_prev[3];
+    double w_prev[3];
 
     double R_matrix[3][3];
 

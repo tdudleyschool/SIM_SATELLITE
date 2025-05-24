@@ -46,7 +46,7 @@ class motor {
     	double state_deriv_get_dI();
 
     	//Description: Gets the rate of change of angular velocity. Returned value should be implemented with an integrator function
-    	double state_dirv_getAlpha(double);
+    	double state_dirv_getAlpha();
     	//------------------//
 
     	//[[INTEGRATED VALUES]]//
