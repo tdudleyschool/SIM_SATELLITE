@@ -27,10 +27,11 @@ void set_realtime_priority() {
 }
 #endif
 
-Sim_Object::Sim_Object(double timestep, double max_time) 
+Sim_Object::Sim_Object(int step, double max_time) 
 //Preparing comment
 {
-    dt = timestep;
+    timestep = step;
+    dt = 1 / timestep;
     maxTime = max_time;
     time = 0.0;
 }
@@ -40,6 +41,7 @@ void Sim_Object::run()
 {
     set_realtime_priority();
     initialize();
+    using clock = chrono::steady_clock;
 
     cout << "Starting Sim";
 
@@ -51,39 +53,31 @@ void Sim_Object::run()
     //convert to miliseconds
     int sleep_ms = static_cast<int>(dt * 1000);
 
-    // Print the current time
-    auto next_tick = chrono::steady_clock::now() + chrono::duration_cast<chrono::steady_clock::duration>(chrono::duration<double>(dt));
-    
+    //setting up steps
+    auto step = chrono::duration<int, ratio<1, 40>>(1);
     while (maxTime < 0 || time < maxTime) {
         // Start measuring time
-
-        auto start = chrono::steady_clock::now();
+        auto start = clock::now();
         update(dt);
+        auto finish = clock::now();
 
-        //time = time += dt;
-
-        auto now = chrono::steady_clock::now();
-
-        double lateness = chrono::duration<double>(now - next_tick).count();
-
-        //if (lateness > 0.01) { // More than 2ms late
-            //cout << "Missed deadline by " << lateness * 1000 << " ms\n";
-        ///}
-        
-        next_tick = next_tick + chrono::duration_cast<chrono::steady_clock::duration>(chrono::duration<double>(dt));
-        auto sleep_duration = next_tick - chrono::steady_clock::now();
-        cout << "sleep duration " << chrono::duration<double>(sleep_duration).count() << "\n";
-        if (sleep_duration > chrono::steady_clock::duration::zero()) {
-            this_thread::sleep_for(sleep_duration);
-        }
-        else
-        {
-            cout << "skip \n";
+        //busy wait seemed to keep the sim running at 25 hz the most consistantly
+        while (clock::now() < start + step){
+            this_thread::yield();
         }
 
+        //comparison of durations directly
+        //if (finish - start > step) {
+        //    this_thread::sleep_until(start+step);
+        //}
+
+        //calculate the delay
+        //auto delay = step - (finish - start);
+        //using namespace std::chrono_literals;
+        //if (delay > 0s) {
+        //    this_thread::sleep_for(delay);
+        //}
         
-        
-        // Stop measuring time and calculate the elapsed time
         auto end = chrono::steady_clock::now();
         double elapsed = chrono::duration<double>(end - start).count();
 
