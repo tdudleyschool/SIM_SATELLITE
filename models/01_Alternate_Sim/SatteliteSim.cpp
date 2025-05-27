@@ -17,7 +17,7 @@ void ACS_Sim::initialize() {
         dw[i] = 0;
     }
     ACS.motor_clock(1, 120);
-    ACS.motor_contClock(2, 120);
+    ACS.motor_contClock(2, 400);
     ACS.updateAll_I(I);
     ACS.updateAll_omega(w);
 }
@@ -27,12 +27,16 @@ void ACS_Sim::update(double delta) {
         I_prev[i] = I[i];
         w_prev[i] = w[i];
     }
+    if (time > 2.0) {
+	ACS.motor_clock(2, 300);
+	ACS.motor_off(1);
+    }
+
+
     double R[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
     ACS.update_all_ori(R);
     ACS.updateAll_I(I_prev);
     ACS.updateAll_omega(w_prev);
-    ACS.motor_clock(1, 120);
-    ACS.motor_contClock(2, 120);
 
     ACS.state_deriv_getALL_dI(dI);
     ACS.state_deriv_getALL_Alpha(dw);
