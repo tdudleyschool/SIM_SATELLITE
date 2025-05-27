@@ -50,10 +50,10 @@ int main(){
     
     for (t; t < 100; t = t + dt){
         if(t>50){
-            cont_wheel.update_Voltage(0);
+            cont_wheel.update_Voltage(200);
         }
         else{
-            cont_wheel.update_Voltage(-200);
+            cont_wheel.update_Voltage(0);
         }
         cout << I << endl;
 

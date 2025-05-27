@@ -29,4 +29,9 @@ bool collisionRaySphere(double /*radius*/, Vector3d /*sphere center*/, Vector3d 
 // Description: Calculates the unit direction vector between two given vectors.
 Vector3d getUnitDir(Vector3d /*vector 1*/, Vector3d /*vector 2*/);
 
+// Description: Calculates the gravitational force between 2 masses and returns force vetors at each location for reach object
+void get_Grav_Force(const double /*mass1*/, const double[3] /*pos. 1*/ ,const double /*mass2*/, const double[3] /*pos2*/, double[3] /*Force m1*/, double[3] /*Force m2*/);
+
+double get_Grav_Force_Mag(const double /*mass1*/, const double[3] /*pos. 1*/ ,const double /*mass2*/, const double[3] /*pos2*/);
+
 #endif

@@ -5,6 +5,8 @@
 
 using namespace std;
 
+const double G = 6.67430e-11; // Gravitational constant in m^3 kg^-1 s^-2
+
 double gravForceMagnitude(double m1, double m2, const double x1[3], const double x2[3]) {
     const double G = 6.67430e-11;
     double dist = sqrt(pow(x2[0] - x1[0], 2) + pow(x2[1] - x1[1], 2) + pow(x2[2] - x1[2], 2));
@@ -52,4 +54,44 @@ Vector3d getUnitDir(Vector3d vec1, Vector3d vec2){
     vec3.normalize();
 
     return vec3;
+}
+
+double get_Grav_Force_Mag(const double mass1, const double pos1[3],
+                          const double mass2, const double pos2[3]) {
+    double r_squared = 0.0;
+    for (int i = 0; i < 3; ++i) {
+        double diff = pos2[i] - pos1[i];
+        r_squared += diff * diff;
+    }
+    if (r_squared == 0.0) return 0.0; // Avoid division by zero
+    return G * mass1 * mass2 / r_squared;
+}
+
+void get_Grav_Force(const double mass1, const double pos1[3],
+                    const double mass2, const double pos2[3],
+                    double force1[3], double force2[3]) {
+    double r_vec[3];
+    double r_squared = 0.0;
+
+    for (int i = 0; i < 3; ++i) {
+        r_vec[i] = pos2[i] - pos1[i];
+        r_squared += r_vec[i] * r_vec[i];
+    }
+
+    if (r_squared == 0.0) {
+        // No force if positions are identical
+        for (int i = 0; i < 3; ++i) {
+            force1[i] = 0.0;
+            force2[i] = 0.0;
+        }
+        return;
+    }
+
+    double r = std::sqrt(r_squared);
+    double force_mag = G * mass1 * mass2 / r_squared;
+
+    for (int i = 0; i < 3; ++i) {
+        force1[i] = force_mag * (r_vec[i] / r);
+        force2[i] = -force1[i]; // Equal and opposite force
+    }
 }

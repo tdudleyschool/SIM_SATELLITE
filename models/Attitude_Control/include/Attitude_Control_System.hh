@@ -52,10 +52,10 @@ class Attitude_Control_System {
         void motor_off(int /*Index of motor*/);
 
         //Description: Automatically turns counter on rotating clockwise
-        void motor_clock(int /*Index of motor*/, double /*current*/, double /*Voltage*/);
+        void motor_clock(int /*Index of motor*/, double /*Voltage*/);
         
         //Description: Automatically turns moter on counter clockwise
-        void motor_contClock(int /*Index of motor*/, double /*current*/, double /*Voltage*/);        
+        void motor_contClock(int /*Index of motor*/, double /*Voltage*/);        
 
         //Description: Updates motor orientation
         void update_all_ori(double[3][3] /*rotation matrix*/);

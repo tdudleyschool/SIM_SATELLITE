@@ -115,7 +115,7 @@ void Attitude_Control_System::state_deriv_getALL_Alpha(double alpha[3])
     alpha[2] = motors[2].state_dirv_getAlpha();
 }
 
-void Attitude_Control_System::motor_clock(int index, double current, double voltage)
+void Attitude_Control_System::motor_clock(int index, double voltage)
 
 {
     V_polarity[index] = 1;
@@ -123,7 +123,7 @@ void Attitude_Control_System::motor_clock(int index, double current, double volt
     motors[index].update_Voltage(V_polarity[index]*voltage);
 }
 
-void Attitude_Control_System::motor_contClock(int index, double current, double voltage)
+void Attitude_Control_System::motor_contClock(int index, double voltage)
 
 {
     V_polarity[index] = -1;
