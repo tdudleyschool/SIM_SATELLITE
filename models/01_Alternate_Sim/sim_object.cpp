@@ -31,7 +31,7 @@ Sim_Object::Sim_Object(int step, double max_time)
 //Preparing comment
 {
     timestep = step;
-    dt = 1 / timestep;
+    dt = 1.0 / timestep;
     maxTime = max_time;
     time = 0.0;
 }
@@ -49,9 +49,6 @@ void Sim_Object::run()
         cout << " for " << maxTime << "seconds \n";
     else
         cout << " indefinently \n ";
-
-    //convert to miliseconds
-    int sleep_ms = static_cast<int>(dt * 1000);
 
     //setting up steps
     auto step = chrono::duration<int, ratio<1, 40>>(1);
@@ -82,6 +79,8 @@ void Sim_Object::run()
         double elapsed = chrono::duration<double>(end - start).count();
 
         cout << "Elepst time: " << elapsed << endl;
+
+        time = time+dt;
     }
 
     cout << "Simulation complete. \n";

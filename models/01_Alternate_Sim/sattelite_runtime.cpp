@@ -2,7 +2,7 @@
 
 int main() {
     
-    SatteliteSim sim(40, 2.0);
+    ACS_Sim sim(40, 5);
     sim.run();
     return 0;
 }
