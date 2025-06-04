@@ -3,15 +3,16 @@
 
 class Sim_Object {
     protected:
+        int timestep;
         double dt;
         double maxTime;
         double time;
 
         virtual void initialize();
 
-        virtual void update(double dt);
+        virtual void update(double);
     public:
-        Sim_Object(double timestep, double max_time = -1.0);
+        Sim_Object(int, double max_time = -1.0);
         virtual ~Sim_Object() = default;
 
         void run();

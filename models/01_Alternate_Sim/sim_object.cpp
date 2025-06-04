@@ -4,13 +4,34 @@
 #include <thread>
 #include <cstdlib>
 #include <ctime>
+#include <time.h>
+
+#ifdef __linux__
+#include <pthread.h>
+#include <sched.h>
+#endif
 
 using namespace std;
 
-Sim_Object::Sim_Object(double timestep, double max_time) 
+#ifdef __linux__
+void set_realtime_priority() {
+    sched_param sch_params;
+    sch_params.sched_priority = 80;
+    if (pthread_setschedparam(pthread_self(), SCHED_RR, &sch_params) != 0) {
+        perror("Failed to set real-time priority");
+    }
+}
+#else
+void set_realtime_priority() {
+    // No-op on non-Linux platforms
+}
+#endif
+
+Sim_Object::Sim_Object(int step, double max_time) 
 //Preparing comment
 {
-    dt = timestep;
+    timestep = step;
+    dt = 1.0 / timestep;
     maxTime = max_time;
     time = 0.0;
 }
@@ -18,7 +39,9 @@ Sim_Object::Sim_Object(double timestep, double max_time)
 void Sim_Object::run()
 
 {
+    set_realtime_priority();
     initialize();
+    using clock = chrono::steady_clock;
 
     cout << "Starting Sim";
 
@@ -27,18 +50,37 @@ void Sim_Object::run()
     else
         cout << " indefinently \n ";
 
-    //convert to miliseconds
-    int sleep_ms = static_cast<int>(dt * 1000);
-
-    // Print the current time
-    
+    //setting up steps
+    auto step = chrono::duration<int, ratio<1, 40>>(1);
     while (maxTime < 0 || time < maxTime) {
+        // Start measuring time
+        auto start = clock::now();
         update(dt);
+        auto finish = clock::now();
 
-        time = time += dt;
-        cout << "Time: " << time << endl;
-        this_thread::sleep_for(chrono::milliseconds(sleep_ms));
+        //busy wait seemed to keep the sim running at 25 hz the most consistantly
+        while (clock::now() < start + step){
+            this_thread::yield();
+        }
 
+        //comparison of durations directly
+        //if (finish - start > step) {
+        //    this_thread::sleep_until(start+step);
+        //}
+
+        //calculate the delay
+        //auto delay = step - (finish - start);
+        //using namespace std::chrono_literals;
+        //if (delay > 0s) {
+        //    this_thread::sleep_for(delay);
+        //}
+        
+        auto end = chrono::steady_clock::now();
+        double elapsed = chrono::duration<double>(end - start).count();
+
+        cout << "Elepst time: " << elapsed << endl;
+
+        time = time+dt;
     }
 
     cout << "Simulation complete. \n";

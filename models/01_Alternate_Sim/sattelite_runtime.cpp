@@ -1,7 +1,8 @@
 #include "SatteliteSim.hh"
 
 int main() {
-    SatteliteSim sim(0.0025, 2.0);
+    
+    ACS_Sim sim(40, 5);
     sim.run();
     return 0;
 }

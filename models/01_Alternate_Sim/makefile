@@ -15,4 +15,8 @@ $(TARGET): $(OBJS)
 	$(CXX) $(CXXFLAGS) -c $<
 
 clean:
+ifeq ($(OS),Windows_NT)
+	del /Q $(TARGET).exe *.o 2> NUL || exit 0
+else
 	rm -f $(TARGET) *.o
+endif
