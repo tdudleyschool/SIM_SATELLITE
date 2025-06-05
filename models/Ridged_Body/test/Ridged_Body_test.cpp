@@ -1,7 +1,6 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
-#include <gtest/gtest.h>
 
 #include "../include/Ridged_Body.hh"
 

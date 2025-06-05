@@ -117,6 +117,7 @@ class ridged_body{
         // Satellite body
         satellite_box B;
         Matrix3d inv_I0; // inverse of the inertia tensor (I_0)
+        Matrix3d I0; //inertial tensor for I
 
         double m;
 };

@@ -66,11 +66,16 @@ ridged_body::ridged_body()
 	B.initialize_points(X[0], X[1], X[2]);
 	B.calc_I_0();
     
+    double I_0[3][3];
 	double inv_I_0[3][3];
+    B.get_I_0(I_0);
 	B.get_inv_I_0(inv_I_0);
+    I0.insert(I_0[0][0], I_0[0][1], I_0[0][2],
+        I_0[1][0], I_0[1][1], I_0[1][2],
+        I_0[2][0], I_0[2][1], I_0[2][2]); //inertial tensor
 	inv_I0.insert(inv_I_0[0][0], inv_I_0[0][1], inv_I_0[0][2],
           	inv_I_0[1][0], inv_I_0[1][1], inv_I_0[1][2],
-          	inv_I_0[2][0], inv_I_0[2][1], inv_I_0[2][2]); // treating as object with constant density, I_0 remains unchanged per time step
+          	inv_I_0[2][0], inv_I_0[2][1], inv_I_0[2][2]); // inverse inertial tensor
 }
 
 ridged_body::ridged_body(double pos[3], double vel[3], double acc[3])
@@ -101,12 +106,17 @@ ridged_body::ridged_body(double pos[3], double vel[3], double acc[3])
 	B.initialize(400, 15);
 	B.initialize_points(X[0], X[1], X[2]);
 	B.calc_I_0();
-
+    
+    double I_0[3][3];
 	double inv_I_0[3][3];
-	B.get_I_0(inv_I_0);
+    B.get_I_0(I_0);
+	B.get_inv_I_0(inv_I_0);
+    I0.insert(I_0[0][0], I_0[0][1], I_0[0][2],
+        I_0[1][0], I_0[1][1], I_0[1][2],
+        I_0[2][0], I_0[2][1], I_0[2][2]); //inertial tensor
 	inv_I0.insert(inv_I_0[0][0], inv_I_0[0][1], inv_I_0[0][2],
           	inv_I_0[1][0], inv_I_0[1][1], inv_I_0[1][2],
-          	inv_I_0[2][0], inv_I_0[2][1], inv_I_0[2][2]); // treating as object with constant density, I_0 remains unchanged per time step
+          	inv_I_0[2][0], inv_I_0[2][1], inv_I_0[2][2]); // inverse inertial tensor
 }
 
 void ridged_body::initialize_body(double mass, double length){
@@ -116,11 +126,16 @@ void ridged_body::initialize_body(double mass, double length){
 	B.initialize_points(X[0], X[1], X[2]);
 	B.calc_I_0();
     
+    double I_0[3][3];
 	double inv_I_0[3][3];
+    B.get_I_0(I_0);
 	B.get_inv_I_0(inv_I_0);
+    I0.insert(I_0[0][0], I_0[0][1], I_0[0][2],
+        I_0[1][0], I_0[1][1], I_0[1][2],
+        I_0[2][0], I_0[2][1], I_0[2][2]); //inertial tensor
 	inv_I0.insert(inv_I_0[0][0], inv_I_0[0][1], inv_I_0[0][2],
           	inv_I_0[1][0], inv_I_0[1][1], inv_I_0[1][2],
-          	inv_I_0[2][0], inv_I_0[2][1], inv_I_0[2][2]);
+          	inv_I_0[2][0], inv_I_0[2][1], inv_I_0[2][2]); // inverse inertial tensor
 }
 
 void ridged_body::initialize_motion(double pos[3], double vel[3], double acc[3]){
@@ -280,7 +295,7 @@ void ridged_body::state_deriv_get_alpha(double a[3])
     //Preconditions: Torque T and angular velocity w must be updated.
     //Postconditions: Returns the angular acceleration to be integrated for angular velocity.
 {
-    alpha = inv_I0 * (T - w.cross(inv_I0 * w));
+    alpha = inv_I0 * (T - w.cross(I0 * w));
 
     a[0] = alpha[0];
     a[1] = alpha[1];
@@ -315,12 +330,12 @@ void ridged_body::state_deriv_getQori(double d_quat[4])
     //Postconditions: Returns the quaternion derivative to be integrated for orientation.
 {
     Quaterniond quat_w(0, w(0), w(1), w(2));
-    Qori * quat_w;
+    Quaterniond dq = Qori * quat_w;
 
-    d_quat[0] = quat_w.w() * 0.5;
-    d_quat[1] = quat_w.x() * 0.5;
-    d_quat[2] = quat_w.y() * 0.5;
-    d_quat[3] = quat_w.z() * 0.5;
+    d_quat[0] = dq.w() * 0.5;
+    d_quat[1] = dq.x() * 0.5;
+    d_quat[2] = dq.y() * 0.5;
+    d_quat[3] = dq.z() * 0.5;
 }
 
 void ridged_body::get_L(double l[3])
