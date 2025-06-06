@@ -412,3 +412,40 @@ void ridged_body::get_Qori(double quat[4])
 double ridged_body::get_mass(){
     return m;
 }
+
+void ridged_body::get_ref_i_vec(double vec[3])
+{
+    Vector3d Rx = R.col(0);
+    vec[0] = Rx(0);
+    vec[1] = Rx(1);
+    vec[2] = Rx(2);
+}
+
+void ridged_body::get_ref_j_vec(double vec[3])
+{
+    Vector3d Ry = R.col(1);
+    vec[0] = Ry(0);
+    vec[1] = Ry(1);
+    vec[2] = Ry(2);
+}
+
+void ridged_body::get_ref_k_vec(double vec[3])
+{
+    Vector3d Rz = R.col(2);
+    vec[0] = Rz(0);
+    vec[1] = Rz(1);
+    vec[2] = Rz(2);
+}
+
+void ridged_body::convert_to_ref_frame(double vec[3])
+{
+    Vector3d v_local;
+    Vector3d v_global;
+    v_global << vec[0] << vec[1] << vec[2];
+
+    v_local = R.transpose() * v_global;
+    vec[0] = v_local[0];
+    vec[1] = v_local[1];
+    vec[2] = v_local[2];
+
+}

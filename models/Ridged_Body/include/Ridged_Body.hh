@@ -95,6 +95,14 @@ class ridged_body{
 
         double get_mass();
 
+        void get_ref_i_vec(double[3]);
+
+        void get_ref_j_vec(double[3]);
+
+        void get_ref_k_vec(double[3]);
+
+        void convert_to_ref_frame(double[3]);
+
     private:
         // Linear Motion
         Vector3d X; // position
