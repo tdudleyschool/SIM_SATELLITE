@@ -95,6 +95,14 @@ class ridged_body{
 
         double get_mass();
 
+        void get_ref_i_vec(double[3]);
+
+        void get_ref_j_vec(double[3]);
+
+        void get_ref_k_vec(double[3]);
+
+        void convert_to_ref_frame(double[3]);
+
     private:
         // Linear Motion
         Vector3d X; // position
@@ -117,6 +125,7 @@ class ridged_body{
         // Satellite body
         satellite_box B;
         Matrix3d inv_I0; // inverse of the inertia tensor (I_0)
+        Matrix3d I0; //inertial tensor for I
 
         double m;
 };

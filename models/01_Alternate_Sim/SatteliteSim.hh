@@ -31,6 +31,30 @@ class ACS_Sim : public Sim_Object {
 
         double dI[3];
         double dw[3];
+
+        //SATTELITE BODY
+        ridged_body Sattelite_Body;
+        double Sat_x[3];
+        double Sat_v[3];
+        double Sat_a[3]; //state
+
+        double Sat_Torque[3]; //state
+        double Sat_w[3]; //integ
+        double Sat_q[4];
+        double Sat_dw[3];
+        double Sat_dq[4];
+        double R_matrix[3][3];
+
+        //PID Controll Variables
+        //PID gains
+        double Kp[3];
+        double Ki[3];
+        double Kd[3];
+
+        double integral[3]; //for pid integrator
+        double prev_error[3]; //needed for derivative
+
+        double target_vec[3];
         
     protected:
         void initialize() override;
