@@ -20,7 +20,7 @@ Attitude_Control_System::Attitude_Control_System()
         motor_Pow[i] = 10.0;
         V_polarity[i] = 1;
         motors[i].initialize(1.0, 0.05, 0.1, 0.1, 1.0, 0.1);
-        motors[i].set_wheel_values(120, 8, 4);
+        motors[i].set_wheel_values(3, 0.4, 0.4);
     }
 
     motors[0].set_refrence_pos(0, 0, 0);

@@ -441,9 +441,12 @@ void ridged_body::convert_to_ref_frame(double vec[3])
 {
     Vector3d v_local;
     Vector3d v_global;
-    v_global << vec[0] << vec[1] << vec[2];
+    v_global[0] = vec[0];
+    v_global[1] = vec[1];
+    v_global[2] = vec[2];
 
-    v_local = R.transpose() * v_global;
+    v_local = R * v_global;
+    
     vec[0] = v_local[0];
     vec[1] = v_local[1];
     vec[2] = v_local[2];
