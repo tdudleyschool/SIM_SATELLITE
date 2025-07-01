@@ -2,7 +2,7 @@
 
 int main() {
     
-    ACS_Sim sim(40, 5);
+    ACS_Sim sim(40);
     sim.run();
     return 0;
 }

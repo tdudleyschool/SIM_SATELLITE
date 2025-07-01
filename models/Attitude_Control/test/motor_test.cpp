@@ -33,7 +33,7 @@ int main(){
 
 
     motor cont_wheel(1.0, 0.05, 0.1, 0.1, 1.0, 0.1);
-    cont_wheel.update_Voltage(-200);
+    cont_wheel.update_Voltage(-2);
     cont_wheel.set_refrence_pos(ref_pos);
     cont_wheel.set_refrence_ori(ref_ori);
     cont_wheel.update_pos_ori(c_pos, R);
@@ -48,9 +48,11 @@ int main(){
     double dI = 0;
     double dw = 0;
     
+    int v = 2;
     for (t; t < 100; t = t + dt){
         if(t>50){
-            cont_wheel.update_Voltage(200);
+            v = v + 1;
+            cont_wheel.update_Voltage(v);
         }
         else{
             cont_wheel.update_Voltage(0);
@@ -66,10 +68,12 @@ int main(){
         dI = cont_wheel.state_deriv_get_dI();
         dw = cont_wheel.state_dirv_getAlpha();
 
+        double torque = cont_wheel.get_torque();
+
         I = I_prev + dt * dI;
         w = w_prev + dt * dw;
         //outData << "t=" << t << " a=" << spring_accel << " v=" << v << " x=" << x << endl; 
-        cout << "t: " << t << ":    I=" << I << " dI=" << dI << " a=" << dw << " w=" << w << endl; 
+        cout << "t: " << t << ":    I=" << I << " dI=" << dI << " a=" << dw << " w=" << w << " torque = " << torque << endl; 
     }
 }
 
