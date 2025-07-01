@@ -16,9 +16,10 @@
 #include "../GNC/include/accelerometer.hh"
 #include "../GNC/include/gyroscope.hh"
 
-#include "../Propulsion/include/Propulsion_System.hh"
 #include "../Recources/include/force_torque_tracker.hh"
 #include "../Recources/include/functions.hh"
+
+#include "../Propulsion/include/Propulsion_System_PIC2D.hh"
 
 class ACS_Sim : public Sim_Object {
     private:
@@ -55,6 +56,19 @@ class ACS_Sim : public Sim_Object {
         double prev_error[3]; //needed for derivative
 
         double target_vec[3];
+
+        // PID for velocity control
+        double Kp_v[3];
+        double Ki_v[3];
+        double Kd_v[3];
+        double velocity_integral[3];
+        double velocity_error_prev[3];
+
+        // Propulsion system
+        Propulsion_System_PIC2D propulsion;
+
+        // Target velocity
+        double target_velocity[3];
         
     protected:
         void initialize() override;

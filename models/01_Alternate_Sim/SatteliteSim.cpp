@@ -8,6 +8,9 @@
 #include "../Ridged_Body/src/Ridged_Body.cpp"
 #include "../Ridged_Body/src/Satellite_Box.cpp"
 
+#include "../Propulsion/src/Propulsion_System_PIC2D.cpp"
+#include "../Propulsion/src/hall_thruster_PIC2D.cpp"
+
 using namespace std;
 
 //
@@ -84,6 +87,31 @@ void ACS_Sim::initialize() {
     target_vec[2] = 1;
 
     normalizeVector(target_vec);
+
+    //thruster initialization
+        // Initialize velocity PID
+        for (int i = 0; i < 3; ++i) {
+            Kp_v[i] = 10.0;
+            Ki_v[i] = 0.5;
+            Kd_v[i] = 1.0;
+            velocity_integral[i] = 0.0;
+            velocity_error_prev[i] = 0.0;
+    
+            target_velocity[i] = 0.0; // or set your desired target
+        }
+    
+        // Initialize propulsion
+        propulsion = Propulsion_System_PIC2D(2.0, 2.0, 2.0, 0.5, 1.0);
+        double orientation[3] = {0, 0, -1};  // Example thrust direction
+        double pos[3];
+        double R[3][3];
+        Sattelite_Body.get_pos(pos);
+        Sattelite_Body.get_R(R);
+        propulsion.set_all_thruster_ref_ori(orientation);
+        propulsion.update_all_pos_ori(pos, R);
+        propulsion.initialize_all_HET_sim();
+        propulsion.turn_all_on();
+    
 
     //Body initialization
     Sattelite_Body.initialize_body(1, 0.5);
@@ -212,6 +240,52 @@ void ACS_Sim::update(double delta) {
 
     Sattelite_Body.update_Qori(Sat_q);
     Sattelite_Body.get_R(R_matrix);
+
+    // =============================
+    // Thruster PID setup
+    // =============================
+
+    // === VELOCITY PID CONTROLLER ===
+    double current_velocity[3];
+    double pos[3], R_body[3][3];
+    Sattelite_Body.get_v(current_velocity);
+    Sattelite_Body.get_pos(pos);
+    Sattelite_Body.get_R(R_body);
+
+    double control_force[3];
+
+    for (int i = 0; i < 3; ++i) {
+        double error = target_velocity[i] - current_velocity[i];
+        velocity_integral[i] += error * delta;
+        double derivative = (error - velocity_error_prev[i]) / delta;
+        velocity_error_prev[i] = error;
+
+        control_force[i] = Kp_v[i]*error + Ki_v[i]*velocity_integral[i] + Kd_v[i]*derivative;
+    }
+
+    // === HET PROPULSION CONTROL ===
+    double total_thrust = sqrt(control_force[0]*control_force[0] + 
+                               control_force[1]*control_force[1] + 
+                               control_force[2]*control_force[2]);
+
+    total_thrust = clamp(total_thrust, 0.0, 1.0);  // Safe thrust clamp
+
+    for (int i = 0; i < 7; ++i) {
+        propulsion.run_step_HET_sim(i, 10.0, 300.0); // Constant inputs for now
+    }
+
+    // === APPLY THRUSTER FORCE ===
+    double net_force[3], force_pos[3];
+    propulsion.get_all_force(net_force, force_pos);
+    propulsion.update_tankmass();
+    Sattelite_Body.update_force(net_force[0], net_force[1], net_force[2]);
+
+    std::cout << "Thrust Force Applied: [" << net_force[0] << ", " << net_force[1] << ", " << net_force[2] << "]\n";
+    std::cout << "Velocity: [" << current_velocity[0] << ", " << current_velocity[1] << ", " << current_velocity[2] << "]\n";
+
+    //==============================
+    // Thruster PID end
+    //==============================
     
     cout << "===== \n";
     cout << "Current Each Motor Draws: " << I[0] << ", " << I[1] << ", " << I[2] << "\n";

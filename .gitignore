@@ -10,4 +10,6 @@ varserver_log
 *_program*
 *.png
 *.txt
+*.exe
+*.csv
 !read_me.txt
