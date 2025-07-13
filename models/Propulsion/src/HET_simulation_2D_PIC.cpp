@@ -2,7 +2,7 @@
 // Implementation for Fernandez-style HET Simulation
 // ============================
 
-#include "..\include\HET_simulation_2D_PIC.hh"
+#include "../include/HET_simulation_2D_PIC.hh"
 #include <cmath>
 #include <random>
 #include <fstream>
