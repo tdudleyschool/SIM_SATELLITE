@@ -3,15 +3,21 @@
 #include <chrono>
 #include <thread>
 #include <cstring>
+#include <algorithm>
 
 #ifdef _WIN32
-  #include <ws2tcpip.h>  // already included in Actor.hh, but safe here if used directly
+  #include <ws2tcpip.h>
 #else
   #include <arpa/inet.h>
 #endif
 
-TimekeeperActor::TimekeeperActor(int port_)
-    : Actor("Timekeeper"), port(port_) {}
+TimekeeperActor::TimekeeperActor(int port_, const std::vector<std::string>& expectedActors)
+    : Actor("Timekeeper"), port(port_), server_fd(INVALID_SOCKET)
+{
+    for (const auto& actorName : expectedActors) {
+        readyMap[actorName] = false;
+    }
+}
 
 void TimekeeperActor::initializeNetwork() {
 #ifdef _WIN32
@@ -38,21 +44,104 @@ void TimekeeperActor::initializeNetwork() {
         exit(1);
     }
 
-    listen(server_fd, 1);
+    listen(server_fd, 5);
 }
 
-void TimekeeperActor::waitForLogger() {
-    while (client_fd == INVALID_SOCKET && running) {
-        std::cout << "[Timekeeper] Waiting for logger to connect...\n";
-        client_fd = accept(server_fd, nullptr, nullptr);
-        if (client_fd == INVALID_SOCKET) {
-            std::this_thread::sleep_for(std::chrono::seconds(1));
+void TimekeeperActor::acceptConnections() {
+    std::cout << "[Timekeeper] Waiting for connections...\n";
+
+    while (running && std::count_if(readyMap.begin(), readyMap.end(),
+                                   [](auto& p) { return !p.second; }) > 0) {
+        sockaddr_in client_addr{};
+        socklen_t addr_len = sizeof(client_addr);
+        socket_t new_sock = accept(server_fd, (sockaddr*)&client_addr, &addr_len);
+        if (new_sock == INVALID_SOCKET) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            continue;
+        }
+
+        std::cout << "[Timekeeper] New connection accepted.\n";
+        // Add to sockets list for communication
+        sockets.push_back(new_sock);
+
+        // Wait for ready message from this actor to identify it
+        bool identified = false;
+        while (running && !identified) {
+            Message msg;
+            // read blocking from this socket only
+            std::string buffer;
+            char ch;
+            while (true) {
+                int ret = recv(new_sock, &ch, 1, 0);
+                if (ret <= 0) {
+                    closesocket(new_sock);
+                    new_sock = INVALID_SOCKET;
+                    break;
+                }
+                if (ch == '\n') break;
+                buffer.push_back(ch);
+            }
+            if (buffer.empty() || new_sock == INVALID_SOCKET) break;
+
+            std::cout << "[Timekeeper] Received initial message from actor: '" << buffer << "'\n";
+
+            msg = deserializeMessage(buffer);
+            if (!msg.content.empty()) {
+                size_t pos = msg.content.find(":ready");
+                if (pos != std::string::npos) {
+                    std::string actorName = msg.content.substr(0, pos);
+                    std::transform(actorName.begin(), actorName.end(), actorName.begin(), ::tolower);
+
+                    if (readyMap.find(actorName) != readyMap.end()) {
+                        readyMap[actorName] = true;
+                        identified = true;
+                        std::cout << "[Timekeeper] Actor '" << actorName << "' is ready.\n";
+                    } else {
+                        std::cerr << "[Timekeeper] Unknown actor '" << actorName << "' connected, closing socket.\n";
+                        closesocket(new_sock);
+                        sockets.pop_back();
+                        new_sock = INVALID_SOCKET;
+                        break;
+                    }
+                } else {
+                    std::cerr << "[Timekeeper] Received message does not contain ':ready', closing socket.\n";
+                    closesocket(new_sock);
+                    sockets.pop_back();
+                    new_sock = INVALID_SOCKET;
+                    break;
+                }
+            } else {
+                std::cerr << "[Timekeeper] Empty content received, closing socket.\n";
+                closesocket(new_sock);
+                sockets.pop_back();
+                new_sock = INVALID_SOCKET;
+                break;
+            }
         }
     }
-    std::cout << "[Timekeeper] Logger connected.\n";
+}
 
-    // Now use this accepted socket for communication
-    sock = client_fd;
+bool TimekeeperActor::waitForAllReady() {
+    // Wait until all actors are ready
+    while (running) {
+        // If any socket is disconnected (INVALID_SOCKET), stop
+        for (auto s : sockets) {
+            if (s == INVALID_SOCKET) {
+                std::cerr << "[Timekeeper] A connected socket disconnected. Stopping.\n";
+                running = false;
+                return false;
+            }
+        }
+
+        // Check if all ready
+        bool allReady = std::all_of(readyMap.begin(), readyMap.end(),
+                                    [](auto& p) { return p.second; });
+        if (allReady) return true;
+
+        // Sleep and check again
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    return false;
 }
 
 void TimekeeperActor::sendTickLoop() {
@@ -65,7 +154,10 @@ void TimekeeperActor::sendTickLoop() {
         Message tickMsg;
         tickMsg.sender = name;
         tickMsg.content = "tick:" + std::to_string(tick++);
-        sendMessage(tickMsg);  // Sends locally and over TCP
+
+        sendMessage(tickMsg);
+
+        std::cout << "[Timekeeper] Sent message: " << tickMsg.content << std::endl;
 
         std::this_thread::sleep_until(nextTick);
     }
@@ -73,45 +165,28 @@ void TimekeeperActor::sendTickLoop() {
 
 void TimekeeperActor::run() {
     initializeNetwork();
-    waitForLogger();
 
-    bool logger_ready = false;
+    // Accept connections and wait for ready messages
+    acceptConnections();
 
-    // Set behavior to listen for logger ready confirmation
+    if (!waitForAllReady()) {
+        std::cerr << "[Timekeeper] Not all actors became ready, stopping.\n";
+        stop();
+        return;
+    }
+
+    std::cout << "[Timekeeper] All actors are ready. Starting tick loop.\n";
+
     setBehavior([&](const Message& msg) {
-        if (msg.content == "logger:ready") {
-            std::cout << "[Timekeeper] Logger is ready. Starting tick loop.\n";
-            logger_ready = true;
-        }
+        // Optional: handle messages from actors (like disconnection notifications)
+        // Here we just print messages from actors
+        std::cout << "[Timekeeper] Received message: " << msg.content << "\n";
     });
 
-    // Wait for logger to confirm readiness
-    while (!logger_ready && running) {
-        // Use new base class function to read message from TCP socket and push to mailbox
-        Message incoming = readIncomingMessage();
-        if (incoming.content.empty()) {
-            // Connection closed or error
-            running = false;
-            break;
-        }
+    sendTickLoop();
 
-        sendMessage(incoming); // Push incoming message to mailbox for local processing
-        Message msg = receiveMessage();
-        handleMessage(msg);
-    }
+    closeAllSockets();
 
-    if (running) {
-        sendTickLoop();
-    }
-
-    if (client_fd != INVALID_SOCKET) {
-        closesocket(client_fd);
-        client_fd = INVALID_SOCKET;
-    }
-    if (server_fd != INVALID_SOCKET) {
-        closesocket(server_fd);
-        server_fd = INVALID_SOCKET;
-    }
 #ifdef _WIN32
     WSACleanup();
 #endif

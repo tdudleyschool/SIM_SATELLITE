@@ -2,22 +2,33 @@
 #define TIMEKEEPER_HH
 
 #include "../Actor/Actor.hh"
+#include <unordered_map>
 
 class TimekeeperActor : public Actor {
-    public:
-        TimekeeperActor(int port);
-    
-    protected:
-        void initializeNetwork() override;
-        void run() override;
-    
-    private:
-        int port;
-        socket_t server_fd = INVALID_SOCKET;
-        socket_t client_fd = INVALID_SOCKET;
-    
-        void waitForLogger();
-        void sendTickLoop();
+public:
+    TimekeeperActor(int port, const std::vector<std::string>& expectedActors);
+
+protected:
+    void initializeNetwork() override;
+    void run() override;
+
+private:
+    int port;
+    socket_t server_fd = INVALID_SOCKET;
+
+    std::unordered_map<std::string, bool> readyMap; // track ready status per actor
+
+    void acceptConnections();
+    void sendTickLoop();
+
+    // Wait until all actors are ready, or disconnect happens
+    bool waitForAllReady();
+
+    // Accept new connections and associate sockets with actor names
+    void handleNewConnection();
 };
 
 #endif
+
+
+

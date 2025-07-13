@@ -1,12 +1,15 @@
+// main_logger.cpp
 #include "Logger.hh"
+#include <iostream>
 
 int main() {
     LoggerActor logger("127.0.0.1", 9000);
     logger.start();
 
-    // Run indefinitely actually for 24 hours
-    std::this_thread::sleep_for(std::chrono::hours(24)); // or while(true)
-    logger.stop();
+    std::cout << "[Main] Logger running. Press Enter to stop...\n";
+    std::cin.get();
 
+    logger.stop();
+    std::cout << "[Main] Logger stopped.\n";
     return 0;
 }

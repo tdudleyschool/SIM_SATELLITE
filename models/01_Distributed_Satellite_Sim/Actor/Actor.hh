@@ -9,8 +9,8 @@
 #include <atomic>
 #include <functional>
 #include <unordered_map>
+#include <vector>
 
-// TCP cross-platform
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
 
@@ -48,29 +48,22 @@ public:
     void start();
     void stop();
 
-    // Sends message locally and also over TCP if connected
     void sendMessage(const Message& msg);
-
-    // Ask pattern, uses mailbox + callback
     void sendAsk(const Message& msg, std::function<void(const Message&)> callback);
 
     void setBehavior(std::function<void(const Message&)> newBehavior);
     std::string getName() const;
 
+    static std::string serializeMessage(const Message& msg);
+    static Message deserializeMessage(const std::string& raw);
+
 protected:
     virtual void initializeNetwork() = 0;
     virtual void run() = 0;
 
-    // Read raw data from socket, parse, return Message object
     Message readIncomingMessage();
-
-    // Send serialized Message over TCP socket
     bool sendNetworkMessage(const Message& msg);
-
-    // Receive Message from local mailbox queue
     Message receiveMessage();
-
-    // Handles behavior callbacks and async replies
     void handleMessage(const Message& msg);
 
     string name;
@@ -83,15 +76,13 @@ protected:
 
     function<void(const Message&)> behavior;
 
-    // Ask-response tracking
     static atomic<MessageID> globalMessageID;
     unordered_map<MessageID, function<void(const Message&)>> pendingResponses;
 
     MessageID generateMessageID();
 
-    // TCP socket used for communication
-    socket_t sock = INVALID_SOCKET;
+    vector<socket_t> sockets;
+    void closeAllSockets();
 };
 
 #endif
-

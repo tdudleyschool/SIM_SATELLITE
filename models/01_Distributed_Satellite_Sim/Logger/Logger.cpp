@@ -5,13 +5,13 @@
 #include <cstring>
 
 #ifdef _WIN32
-  #include <ws2tcpip.h>  // already included in Actor.hh, but safe here if used directly
+  #include <ws2tcpip.h>
 #else
   #include <arpa/inet.h>
 #endif
 
 LoggerActor::LoggerActor(const std::string& ip_, int port_)
-    : Actor("Logger"), ip(ip_), port(port_) {}
+    : Actor("logger"), ip(ip_), port(port_) {}
 
 void LoggerActor::initializeNetwork() {
 #ifdef _WIN32
@@ -22,8 +22,8 @@ void LoggerActor::initializeNetwork() {
     }
 #endif
 
-    sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock == INVALID_SOCKET) {
+    socket_t loggerSock = socket(AF_INET, SOCK_STREAM, 0);
+    if (loggerSock == INVALID_SOCKET) {
         std::cerr << "[Logger] Failed to create socket.\n";
         exit(1);
     }
@@ -35,31 +35,36 @@ void LoggerActor::initializeNetwork() {
 #ifdef _WIN32
     if (InetPton(AF_INET, ip.c_str(), &server.sin_addr) != 1) {
         std::cerr << "[Logger] Invalid IP address.\n";
-        closesocket(sock);
+        closesocket(loggerSock);
         exit(1);
     }
 #else
     if (inet_pton(AF_INET, ip.c_str(), &server.sin_addr) <= 0) {
         std::cerr << "[Logger] Invalid IP address.\n";
-        closesocket(sock);
+        closesocket(loggerSock);
         exit(1);
     }
 #endif
 
-    // Try connecting to Timekeeper until successful
-    while (connect(sock, (sockaddr*)&server, sizeof(server)) == SOCKET_ERROR) {
+    while (connect(loggerSock, (sockaddr*)&server, sizeof(server)) == SOCKET_ERROR) {
         std::cerr << "[Logger] Waiting to connect to Timekeeper...\n";
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
     std::cout << "[Logger] Connected to Timekeeper.\n";
 
-    // Immediately notify Timekeeper that Logger is ready
+    // Add socket to vector of sockets
+    sockets.push_back(loggerSock);
+
+    std::cout << "[Logger] Connected to Timekeeper.\n";
+
+    // Immediately notify Timekeeper that Logger is ready on first socket
     Message readyMsg;
     readyMsg.sender = name;
     readyMsg.content = "logger:ready";
     sendMessage(readyMsg);
 }
+
 
 void LoggerActor::run() {
     initializeNetwork();
@@ -73,20 +78,24 @@ void LoggerActor::run() {
     while (running) {
         Message incoming = readIncomingMessage();
         if (incoming.content.empty()) {
-            std::cerr << "[Logger] Connection closed or error.\n";
-            running = false;
-            break;
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            continue;
         }
 
-        sendMessage(incoming);  // push to mailbox
+        {
+            std::lock_guard<std::mutex> lock(mailboxMutex);
+            mailbox.push(incoming);
+        }
+        mailboxCV.notify_one();
+
         Message msg = receiveMessage();
-        handleMessage(msg);
+        if (!msg.content.empty()) {
+            handleMessage(msg);
+        }
     }
 
-    if (sock != INVALID_SOCKET) {
-        closesocket(sock);
-        sock = INVALID_SOCKET;
-    }
+    closeAllSockets();
+
 #ifdef _WIN32
     WSACleanup();
 #endif
