@@ -10,8 +10,13 @@
 #include <functional>
 #include <unordered_map>
 #include <vector>
+#include <sstream>
+#include <iostream>
 
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
+
 #define WIN32_LEAN_AND_MEAN
 
 #ifdef _WIN32
@@ -35,9 +40,19 @@ using namespace std;
 
 struct Message {
     string sender;
-    string content;
+    string type;
+    unordered_map<string, string> fields;
     MessageID id = 0;
     MessageID replyTo = 0;
+
+    // Serialize fields as key=value;key2=value2;...
+    string flattenFields() const {
+        string result;
+        for (const auto& [k, v] : fields) {
+            result += k + "=" + v + ";";
+        }
+        return result;
+    }
 };
 
 class Actor {
@@ -48,7 +63,11 @@ public:
     void start();
     void stop();
 
-    void sendMessage(const Message& msg);
+    void sendMessage(const Message& msg); // broadcast to all connections
+    
+    // New overload to send to a specific socket
+    void sendMessage(const Message& msg, socket_t sock);
+    
     void sendAsk(const Message& msg, std::function<void(const Message&)> callback);
 
     void setBehavior(std::function<void(const Message&)> newBehavior);

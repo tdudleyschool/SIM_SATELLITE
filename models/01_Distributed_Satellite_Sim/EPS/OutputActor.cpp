@@ -2,7 +2,6 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
-#include <cstring>
 
 #ifdef _WIN32
   #include <ws2tcpip.h>
@@ -57,26 +56,18 @@ void OutputActor::run() {
     std::cout << "[Output] Summer connected.\n";
 
     setBehavior([&](const Message& msg) {
-        std::cout << "[Output] Handling message: '" << msg.content << "'\n";  // Debug print on handle
+        if (msg.type == "sum") {
+            std::cout << "[Output] Received sum: " << msg.fields.at("value") << "\n";
+        } else {
+            std::cout << "[Output] Received message type: " << msg.type << "\n";
+        }
     });
 
     while (running) {
-        Message incoming = Message{};
-        while (running && incoming.content.empty()) {
-            incoming = readIncomingMessage();
-            if (incoming.content.empty()) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(10));
-            } else {
-                std::cout << "[Output] Received raw message: '" << incoming.content << "'\n";  // Debug raw incoming
-            }
-        }
-
-        if (!running) break;
-
-        if (incoming.content.empty()) {
-            std::cerr << "[Output] Connection closed or error.\n";
-            running = false;
-            break;
+        Message incoming = readIncomingMessage();
+        if (incoming.type.empty()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            continue;
         }
 
         {
@@ -86,10 +77,8 @@ void OutputActor::run() {
         mailboxCV.notify_one();
 
         Message msg = receiveMessage();
-        if (!msg.content.empty()) {
+        if (!msg.type.empty()) {
             handleMessage(msg);
-        } else {
-            std::cerr << "[Output] Received empty message after popping from mailbox!\n";
         }
     }
 
@@ -99,4 +88,5 @@ void OutputActor::run() {
     WSACleanup();
 #endif
 }
+
 

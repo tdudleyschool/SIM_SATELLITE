@@ -2,7 +2,6 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
-#include <cstring>
 
 #ifdef _WIN32
   #include <ws2tcpip.h>
@@ -51,33 +50,31 @@ void LoggerActor::initializeNetwork() {
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
-    std::cout << "[Logger] Connected to Timekeeper.\n";
-
-    // Add socket to vector of sockets
     sockets.push_back(loggerSock);
 
     std::cout << "[Logger] Connected to Timekeeper.\n";
 
-    // Immediately notify Timekeeper that Logger is ready on first socket
+    // Send ready message using new format
     Message readyMsg;
     readyMsg.sender = name;
-    readyMsg.content = "logger:ready";
+    readyMsg.type = "ready";
     sendMessage(readyMsg);
 }
-
 
 void LoggerActor::run() {
     initializeNetwork();
 
     setBehavior([&](const Message& msg) {
-        if (msg.content.rfind("tick:", 0) == 0) {
-            std::cout << "[Logger] Received: " << msg.content << "\n";
+        if (msg.type == "tick") {
+            std::cout << "[Logger] Received tick count: " << msg.fields.at("count") << "\n";
+        } else {
+            std::cout << "[Logger] Received message type: " << msg.type << "\n";
         }
     });
 
     while (running) {
         Message incoming = readIncomingMessage();
-        if (incoming.content.empty()) {
+        if (incoming.type.empty()) {
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
             continue;
         }
@@ -89,7 +86,7 @@ void LoggerActor::run() {
         mailboxCV.notify_one();
 
         Message msg = receiveMessage();
-        if (!msg.content.empty()) {
+        if (!msg.type.empty()) {
             handleMessage(msg);
         }
     }

@@ -33,6 +33,8 @@ class solar_cell {
     	// Description: Constructor initializing the solar cell with max current
     	solar_cell(double /*max current*/);
 
+		void initialize(double);
+
     	// Description: Locks the solar cell's orientation along the X-axis
     	void lock_axis_x();
 

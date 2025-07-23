@@ -76,7 +76,7 @@ void ACS_Sim::initialize() {
         dw[i] = 0;
 
         //PID controller
-        Kp[i] = 1.0;
+        Kp[i] = 8.0;
         Ki[i] = 0.05;
         Kd[i] = 0.3;
         prev_error[i] = 0;
@@ -164,11 +164,11 @@ void ACS_Sim::update(double delta) {
     //Error x,y -> Motor_z
     error_around_axis[2] = error[0] * error[1]; //error around z
     //Error y,z -> Motor_x
-    error_around_axis[0] = - error[1] * error[2]; //error around x
+    error_around_axis[0] = error[1] * error[2]; //error around x
     //Error z,x -> Motor_y
     error_around_axis[1] = error[2] * error[0]; //error around y
 
-    // Print raw angle errors for debugging
+    // Print raw angle errors for debugg
     std::cout << "Angle Errors (rad): X: " << error_around_axis[0] //e_x
               << ", Y: " << error_around_axis[1] //e_y
               << ", Z: " << error_around_axis[2] << "\n"; // e_z
@@ -210,6 +210,7 @@ void ACS_Sim::update(double delta) {
     ACS.state_deriv_getALL_dI(dI);
     ACS.state_deriv_getALL_Alpha(dw);
 
+    //try rk4 integration maybe this is the issue
     for (int i = 0; i < 3; i++) {
         I[i] = I_prev[i] + dI[i] * delta;
         w[i] = w_prev[i] + dw[i] * delta;
@@ -244,13 +245,14 @@ void ACS_Sim::update(double delta) {
     // =============================
     // Thruster PID setup
     // =============================
-
+    
     // === VELOCITY PID CONTROLLER ===
     double current_velocity[3];
     double pos[3], R_body[3][3];
     Sattelite_Body.get_v(current_velocity);
     Sattelite_Body.get_pos(pos);
     Sattelite_Body.get_R(R_body);
+    propulsion.update_all_pos_ori(pos, R_body);
 
     double control_force[3];
 

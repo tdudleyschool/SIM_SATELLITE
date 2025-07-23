@@ -42,6 +42,16 @@ solar_cell::solar_cell(double max_current)
     lock_axis = 2;
 }
 
+void solar_cell::initialize(double max_current)
+    //Description:    Constructor initializing the maximum short-circuit current and the reference normal vector.
+    //Preconditions:  max_current must be a non-negative value.
+    //Postconditions: max_I_sc is set, reference normal vector initialized to (1, 0, 0), and lock_axis set to 2 (z-axis).
+{
+    max_I_sc = max_current;
+    ref_normal_vec.insert(1, 0, 0);
+    lock_axis = 2;
+}
+
 void solar_cell::lock_axis_x()
     //Description:    Locks the orientation of the solar cell normal vector to the x-axis.
     //Preconditions:  None
@@ -179,7 +189,7 @@ void solar_cell::rotate_dir_clock(double theta)
     //Preconditions:  theta must be a valid angle in degrees.
     //Postconditions: ref_normal_vec is updated according to the clockwise rotation.
 {
-    double rad = theta * M_PI / 180.0; // Corrected from PI * 180 to M_PI / 180
+    double rad = theta * PI / 180.0; // Corrected from PI * 180 to PI / 180
     Vector2d normal_vec_comp;
     Matrix2d R_Matrix2d;
 
@@ -201,7 +211,7 @@ void solar_cell::rotate_dir_contclock(double theta)
     //Preconditions:  theta must be a valid angle in degrees.
     //Postconditions: ref_normal_vec is updated according to the counterclockwise rotation.
 {
-    double rad = -theta * M_PI / 180.0; // Corrected from -PI * 180 to -M_PI / 180
+    double rad = -theta * PI / 180.0; // Corrected from -PI * 180 to -PI / 180
     Vector2d normal_vec_comp;
     Matrix2d R_Matrix2d;
 

@@ -60,7 +60,7 @@ battery::battery(double capacity, double res0, double res1, double res2, double 
 	V2 = 0;
 }
 
-void battery::initialize(double capacity, double res0, double res1, double res2, double cap1, double cap2)
+void battery::initialize(double capacity, double res0, double res1, double res2, double cap1, double cap2, double state_charge)
     //Description:      Initializes the battery parameters.
     //Preconditions:    Valid values for capacity, resistances, and capacitances must be provided.
     //Postconditions:   Battery parameters are initialized, and internal voltages are reset.
@@ -71,6 +71,7 @@ void battery::initialize(double capacity, double res0, double res1, double res2,
 	R2 = res2;
 	C1 = cap1;
 	C2 = cap2;
+    soc = state_charge;
 
 	V1 = 0;
 	V2 = 0;
