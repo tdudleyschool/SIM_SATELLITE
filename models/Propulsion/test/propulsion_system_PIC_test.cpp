@@ -13,18 +13,22 @@ int main() {
 
     double pos[3] = {0.0, 0.0, 0.0};
     double R[3][3] = {
-        {1, 0, 0},
-        {0, 1, 0},
-        {0, 0, 1}
+        {  0.7071, 0, 0.7071 },
+        {  0,      1, 0      },
+        { -0.7071, 0, 0.7071 }
     };
 
+
     propulsion.update_all_pos_ori(pos, R);
+
+
     propulsion.initialize_all_HET_sim();
     propulsion.turn_all_on();
 
     for (int step = 0; step < 10; step++) {
+        propulsion.update_all_pos_ori(pos, R);
         for (int i = 0; i < 7; ++i) {
-            propulsion.run_step_HET_sim(i, 10, 300.0);
+            propulsion.run_step_HET_sim(i, 100 /*mass flow*/, 300.0 /*thrust*/);
         }
 
         double net_force[3];

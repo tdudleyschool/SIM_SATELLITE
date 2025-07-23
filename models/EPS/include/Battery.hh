@@ -59,7 +59,7 @@ class battery {
     	// Description: Sets or resets values used for battery simulation
     	void initialize(double /*capacity*/, double /*resistor0*/, 
                      double /*resistor1*/, double /*resistor2*/, 
-                     double /*capacitor1*/, double /*capacitor2*/);
+                     double /*capacitor1*/, double /*capacitor2*/, double /*state of charge*/);
                      
     	// Description: Calculates the voltages based on the current state
     	void state_deriv_getVolteges(double& /*dVoltage1*/, double&/*dVoltage2*/);

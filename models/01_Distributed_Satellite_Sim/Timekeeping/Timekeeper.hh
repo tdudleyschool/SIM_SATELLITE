@@ -20,15 +20,7 @@ private:
 
     void acceptConnections();
     void sendTickLoop();
-
-    // Wait until all actors are ready, or disconnect happens
     bool waitForAllReady();
-
-    // Accept new connections and associate sockets with actor names
-    void handleNewConnection();
 };
 
 #endif
-
-
-

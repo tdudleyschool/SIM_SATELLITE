@@ -3,7 +3,7 @@
 #include <iostream>
 
 int main() {
-    std::vector<std::string> expected = { "logger", "summer" };
+    std::vector<std::string> expected = { "missionprocessor", "eps_module", "propulsionsystem", "attitudecontrolsystem", "ridgedbodymodule", "forcetorquetracker" };
     TimekeeperActor tk(9000, expected);
     tk.start();
 

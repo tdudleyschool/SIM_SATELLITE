@@ -43,7 +43,8 @@ Propulsion_System_PIC2D::Propulsion_System_PIC2D()
 {
     total_massflow = 0.0;
     for (int i = 0; i < 7; i++) {
-        thrusters[i].set_refrence_ori(0, 0, -1);
+        double ori[3] = {0, 0, -1};
+        thrusters[i].set_refrence_ori(ori);
     }
     available_mass = tanks[0].getmass() + tanks[1].getmass() + tanks[2].getmass();
 }
@@ -111,6 +112,9 @@ void Propulsion_System_PIC2D::set_all_thruster_ref_ori(Vector3d orientation)
 {
     for (int i = 0; i < 7; i++) {
         thrusters[i].set_refrence_ori(orientation);
+        double orien[3];
+        thrusters[i].get_ori(orien);
+        std::cout << "Ori: " <<orien[0] << ", " << orien[1] << ", " << orien[2] << "\n";
     }
 }
 
@@ -121,6 +125,9 @@ void Propulsion_System_PIC2D::update_all_pos_ori(double satellite_position[3], d
 {
     for (int i = 0; i < 7; i++) {
         thrusters[i].update_pos_ori(satellite_position, rotation_matrix);
+        double orien[3];
+        thrusters[i].get_ori(orien);
+        //std::cout << "Ori: " <<orien[0] << ", " << orien[1] << ", " << orien[2] << "\n";
     }
 }
 
@@ -131,6 +138,9 @@ void Propulsion_System_PIC2D::update_all_pos_ori(Vector3d satellite_position, Ma
 {
     for (int i = 0; i < 7; i++) {
         thrusters[i].update_pos_ori(satellite_position, rotation_matrix);
+        double orien[3];
+        thrusters[i].get_ori(orien);
+        std::cout << "Ori: " <<orien[0] << ", " << orien[1] << ", " << orien[2] << "\n";
     }
 }
 
